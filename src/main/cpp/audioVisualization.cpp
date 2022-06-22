@@ -5,7 +5,7 @@
 
 extern "C" {
 JNIEXPORT jfloat JNICALL
-Java_de_dertyp7214_audiovisualization_components_AudioVisualization_calculateBottomSpace(
+Java_de_dertyp7214_audiovisualization_components_AudioVisualizationC_calculateBottomSpace(
         __attribute__((unused)) JNIEnv *env,
         __attribute__((unused)) jobject clazz,
         jfloat x, jfloat width,
@@ -19,7 +19,7 @@ Java_de_dertyp7214_audiovisualization_components_AudioVisualization_calculateBot
 }
 
 JNIEXPORT jint JNICALL
-Java_de_dertyp7214_audiovisualization_components_AudioVisualization_drawOnBitmap(
+Java_de_dertyp7214_audiovisualization_components_AudioVisualizationC_drawOnBitmap(
         JNIEnv *env,
         __attribute__((unused)) jobject clazz,
         jobject bitmap,
@@ -63,16 +63,15 @@ Java_de_dertyp7214_audiovisualization_components_AudioVisualization_drawOnBitmap
 }
 
 JNIEXPORT jshortArray JNICALL
-Java_de_dertyp7214_audiovisualization_components_AudioVisualization_changeShortArraySize(
+Java_de_dertyp7214_audiovisualization_components_AudioVisualizationC_changeShortArraySize(
         JNIEnv *env,
         __attribute__((unused)) jobject clazz,
-        jshortArray array,
-        jint new_size
+        jshortArray _receiver, jint new_size
 ) {
     short out_array[new_size];
     changeShortArraySize(
-            env->GetArrayLength(array),
-            env->GetShortArrayElements(array, (jboolean *) false),
+            env->GetArrayLength(_receiver),
+            env->GetShortArrayElements(_receiver, (jboolean *) false),
             new_size,
             out_array
     );

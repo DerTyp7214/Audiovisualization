@@ -4,16 +4,15 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
-import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.util.AttributeSet
 import android.view.View
-import androidx.annotation.ColorInt
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.MutableLiveData
 import de.dertyp7214.audiovisualization.R
+import de.dertyp7214.audiovisualization.components.AudioVisualizationC.changeShortArraySize
 import kotlin.random.Random
 
 class AudioVisualizerView(context: Context, attrs: AttributeSet?, defStyle: Int) :
@@ -55,9 +54,9 @@ class AudioVisualizerView(context: Context, attrs: AttributeSet?, defStyle: Int)
         this.mutableAudioData.postValue(audioData.let {
             if (mirrored) {
                 val data =
-                    AudioVisualization.changeShortArraySize(it, size / 2)
+                    it.changeShortArraySize(size / 2)
                 data + data.reversed()
-            } else AudioVisualization.changeShortArraySize(it, size)
+            } else it.changeShortArraySize(size)
         })
 
     fun setBottomLeftCorner(corner: Corner) = this.mutableBottomLeftCorner.postValue(corner)
@@ -103,7 +102,7 @@ class AudioVisualizerView(context: Context, attrs: AttributeSet?, defStyle: Int)
         while (i < audioData.size) {
             val barHeight = height / 256f * (audioData[i] * .2f)
 
-            val cornerBottomSpace = AudioVisualization.calculateBottomSpace(
+            val cornerBottomSpace = AudioVisualizationC.calculateBottomSpace(
                 x,
                 width,
                 bottomLeftCorner.radius,
@@ -148,30 +147,4 @@ class AudioVisualizerView(context: Context, attrs: AttributeSet?, defStyle: Int)
     }
 
     data class Corner(val radius: Int)
-}
-
-object AudioVisualization {
-    fun init() {
-        System.loadLibrary("audiovisualization")
-    }
-
-    external fun calculateBottomSpace(
-        x: Float,
-        width: Float,
-        bottomLeftCorner: Int,
-        bottomRightCorner: Int,
-        barWidth: Float,
-        barHeight: Float
-    ): Float
-
-    external fun drawOnBitmap(
-        bitmap: Bitmap,
-        size: Int,
-        @ColorInt color: Int,
-        bottomLeftCorner: Int,
-        bottomRightCorner: Int,
-        audioData: ShortArray
-    ): Int
-
-    external fun changeShortArraySize(array: ShortArray, newSize: Int): ShortArray
 }
