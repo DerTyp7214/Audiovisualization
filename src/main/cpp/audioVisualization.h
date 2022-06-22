@@ -81,9 +81,10 @@ static void drawOnBitmap(
         ));
 
         for (int py = x; py < x + barWidth; py++) {
-            for (int px = 0;
-                 px < fmin(fmax(height - barHeight - cornerBottomSpace, height - 1), 0); px++) {
-                draw(bitmapInfo.stride, pixels, py, px, color);
+            for (int px = 0; px < height; px++) {
+                if (px > height - barHeight - cornerBottomSpace) {
+                    draw(bitmapInfo.stride, pixels, py, px, color);
+                }
             }
         }
 
@@ -94,21 +95,26 @@ static void drawOnBitmap(
     AndroidBitmap_unlockPixels(env, bitmap);
 }
 
-static void changeShortArraySize( int size, short array[size], int new_size, short result[new_size]) {
+static void changeShortArraySize(
+        int size,
+        short array[size],
+        int new_size,
+        short result[new_size]
+) {
     float factor = new_size / size;
     if (factor > 1) {
-        int k=0;
-        for (int x =0;x<size;x++) {
-            for (int i=0;i<factor;i++) {
-                if (k==0) result[k] = array[x];
-                else result[k] = (result[k-1]+array[x])/2;
+        int k = 0;
+        for (int x = 0; x < size; x++) {
+            for (int i = 0; i < factor; i++) {
+                if (k == 0) result[k] = array[x];
+                else result[k] = (result[k - 1] + array[x]) / 2;
                 k++;
             }
         }
     } else {
-        int k=0;
-        int f1 = size/new_size;
-        for (int i=0;i<size;i++) {
+        int k = 0;
+        int f1 = size / new_size;
+        for (int i = 0; i < size; i++) {
             if (fmodf(i, f1) == 0) {
                 result[k] = array[i];
                 k++;
