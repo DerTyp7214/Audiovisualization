@@ -3,15 +3,16 @@ package de.dertyp7214.audiovisualization.components
 import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
+import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.util.AttributeSet
 import android.view.View
+import androidx.annotation.ColorInt
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.MutableLiveData
 import de.dertyp7214.audiovisualization.R
-import de.dertyp7214.mathc.AudioVisualization
 import kotlin.math.roundToInt
 import kotlin.random.Random
 
@@ -33,6 +34,7 @@ class AudioVisualizerView(context: Context, attrs: AttributeSet?, defStyle: Int)
         get() = mutableBottomRightCorner.value ?: Corner(0)
     private val color
         get() = mutableColor.value ?: Color.WHITE
+    private val paint = Paint()
 
     var size: Int = 64
     var visualize: Boolean = true
@@ -54,7 +56,7 @@ class AudioVisualizerView(context: Context, attrs: AttributeSet?, defStyle: Int)
     fun setAudioData(audioData: List<Short>, mirrored: Boolean = false) =
         this.mutableAudioData.postValue(audioData.let {
             if (mirrored) {
-                val data = audioData.changeSize(size / 2)
+                val data = it.changeSize(size / 2)
                 data + data.reversed()
             } else it.changeSize(size)
         })
@@ -73,6 +75,7 @@ class AudioVisualizerView(context: Context, attrs: AttributeSet?, defStyle: Int)
                     }
 
                     mutableColor.observe(activity) {
+                        paint.color = it
                         invalidate()
                     }
                 }
@@ -80,8 +83,8 @@ class AudioVisualizerView(context: Context, attrs: AttributeSet?, defStyle: Int)
         }
     }
 
-    override fun onDraw(canvas: Canvas?) {
-        canvas?.let { c -> drawOnBitmap(audioData, c) }
+    override fun onDraw(canvas: Canvas) {
+        drawOnBitmap(audioData, canvas)
     }
 
     private fun drawOnBitmap(audioData: List<Short>, canvas: Canvas) {
@@ -95,8 +98,6 @@ class AudioVisualizerView(context: Context, attrs: AttributeSet?, defStyle: Int)
         })
         if (!visualize) return
 
-        val paint = Paint()
-        paint.color = color
         var i = 0
         var x = space / 2
         while (i < audioData.size) {
@@ -164,4 +165,28 @@ class AudioVisualizerView(context: Context, attrs: AttributeSet?, defStyle: Int)
     }
 
     data class Corner(val radius: Int)
+}
+
+object AudioVisualization {
+    fun init() {
+        System.loadLibrary("audiovisualization")
+    }
+
+    external fun calculateBottomSpace(
+        x: Float,
+        width: Float,
+        bottomLeftCorner: Int,
+        bottomRightCorner: Int,
+        barWidth: Float,
+        barHeight: Float
+    ): Float
+
+    external fun drawOnBitmap(
+        bitmap: Bitmap,
+        size: Int,
+        @ColorInt color: Int,
+        bottomLeftCorner: Int,
+        bottomRightCorner: Int,
+        audioData: ShortArray
+    ): Int
 }
