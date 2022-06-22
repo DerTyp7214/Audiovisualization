@@ -1,12 +1,13 @@
 #include <jni.h>
-#include <math.h>
+#include <cmath>
 #include <android/bitmap.h>
 #include "audioVisualization.h"
 
+extern "C" {
 JNIEXPORT jfloat JNICALL
 Java_de_dertyp7214_audiovisualization_components_AudioVisualization_calculateBottomSpace(
         __attribute__((unused)) JNIEnv *env,
-        __attribute__((unused)) jobject class,
+        __attribute__((unused)) jobject clazz,
         jfloat x, jfloat width,
         jint bottom_left_corner,
         jint bottom_right_corner,
@@ -20,7 +21,7 @@ Java_de_dertyp7214_audiovisualization_components_AudioVisualization_calculateBot
 JNIEXPORT jint JNICALL
 Java_de_dertyp7214_audiovisualization_components_AudioVisualization_drawOnBitmap(
         JNIEnv *env,
-        __attribute__((unused)) jobject class,
+        __attribute__((unused)) jobject clazz,
         jobject bitmap,
         jint size,
         jint color,
@@ -28,6 +29,8 @@ Java_de_dertyp7214_audiovisualization_components_AudioVisualization_drawOnBitmap
         jint bottom_right_corner,
         jshortArray audio_data
 ) {
+    short *local_audio_data = env->GetShortArrayElements(audio_data, (jboolean *) false);
+
     if (!bitmap) {
         return -1;
     }
@@ -53,8 +56,28 @@ Java_de_dertyp7214_audiovisualization_components_AudioVisualization_drawOnBitmap
     drawOnBitmap(
             env, bitmap, info, size, color,
             bottom_left_corner, bottom_right_corner,
-            audio_data
+            local_audio_data
     );
 
     return 0;
+}
+
+JNIEXPORT jshortArray JNICALL
+Java_de_dertyp7214_audiovisualization_components_AudioVisualization_changeShortArraySize(
+        JNIEnv *env,
+        __attribute__((unused)) jobject clazz,
+        jshortArray array,
+        jint new_size
+) {
+    short out_array[new_size];
+    changeShortArraySize(
+            env->GetArrayLength(array),
+            env->GetShortArrayElements(array, (jboolean *) false),
+            new_size,
+            out_array
+    );
+    jshortArray result = env->NewShortArray(new_size);
+    env->SetShortArrayRegion(result, 0, new_size, out_array);
+    return result;
+}
 }

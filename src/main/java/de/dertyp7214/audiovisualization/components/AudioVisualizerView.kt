@@ -1,5 +1,6 @@
 package de.dertyp7214.audiovisualization.components
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
@@ -13,7 +14,6 @@ import androidx.annotation.ColorInt
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.MutableLiveData
 import de.dertyp7214.audiovisualization.R
-import kotlin.math.roundToInt
 import kotlin.random.Random
 
 class AudioVisualizerView(context: Context, attrs: AttributeSet?, defStyle: Int) :
@@ -21,13 +21,13 @@ class AudioVisualizerView(context: Context, attrs: AttributeSet?, defStyle: Int)
 
     constructor(context: Context, attrs: AttributeSet?) : this(context, attrs, 0)
 
-    private val mutableAudioData = MutableLiveData<List<Short>>()
+    private val mutableAudioData = MutableLiveData<ShortArray>()
     private val mutableBottomLeftCorner = MutableLiveData(Corner(0))
     private val mutableBottomRightCorner = MutableLiveData(Corner(0))
     private val mutableColor = MutableLiveData(Color.WHITE)
 
     private val audioData
-        get() = mutableAudioData.value ?: listOf()
+        get() = mutableAudioData.value ?: shortArrayOf()
     private val bottomLeftCorner
         get() = mutableBottomLeftCorner.value ?: Corner(0)
     private val bottomRightCorner
@@ -45,20 +45,19 @@ class AudioVisualizerView(context: Context, attrs: AttributeSet?, defStyle: Int)
 
         size = typedArray.getInt(R.styleable.AudioVisualizerView_size, size)
         if (typedArray.getBoolean(R.styleable.AudioVisualizerView_testInput, false))
-            mutableAudioData.value = ArrayList<Short>().apply {
-                for (i in 0 until size) add(Random.nextInt(255).toShort())
-            }
+            mutableAudioData.value = ShortArray(size) { Random.nextInt(255).toShort() }
 
         typedArray.recycle()
     }
 
     fun setColor(color: Int) = this.mutableColor.postValue(color)
-    fun setAudioData(audioData: List<Short>, mirrored: Boolean = false) =
+    fun setAudioData(audioData: ShortArray, mirrored: Boolean = false) =
         this.mutableAudioData.postValue(audioData.let {
             if (mirrored) {
-                val data = it.changeSize(size / 2)
+                val data =
+                    AudioVisualization.changeShortArraySize(it, size / 2)
                 data + data.reversed()
-            } else it.changeSize(size)
+            } else AudioVisualization.changeShortArraySize(it, size)
         })
 
     fun setBottomLeftCorner(corner: Corner) = this.mutableBottomLeftCorner.postValue(corner)
@@ -83,11 +82,12 @@ class AudioVisualizerView(context: Context, attrs: AttributeSet?, defStyle: Int)
         }
     }
 
+    @SuppressLint("DrawAllocation")
     override fun onDraw(canvas: Canvas) {
         drawOnBitmap(audioData, canvas)
     }
 
-    private fun drawOnBitmap(audioData: List<Short>, canvas: Canvas) {
+    private fun drawOnBitmap(audioData: ShortArray, canvas: Canvas) {
         val width = canvas.width.toFloat()
         val height = canvas.height.toFloat()
         val space = (width / size) / 10
@@ -123,23 +123,6 @@ class AudioVisualizerView(context: Context, attrs: AttributeSet?, defStyle: Int)
             i++
             x += barWidth + space
         }
-    }
-
-    private fun List<Short>.changeSize(newSize: Int): List<Short> {
-        val tmp = ArrayList<Short>()
-        val factor = newSize.toFloat() / size
-        if (factor > 1f) {
-            forEach {
-                for (i in 0 until factor.roundToInt()) if (tmp.isNotEmpty()) tmp.add((tmp.last() + it / 2).toShort())
-                else tmp.add(it)
-            }
-        } else {
-            val f1 = (size.toFloat() / newSize).roundToInt()
-            forEachIndexed { index, _ ->
-                if (index % f1 == 0) tmp.add(get(index))
-            }
-        }
-        return tmp
     }
 
     private tailrec fun Context?.getActivity(): Activity? {
@@ -189,4 +172,6 @@ object AudioVisualization {
         bottomRightCorner: Int,
         audioData: ShortArray
     ): Int
+
+    external fun changeShortArraySize(array: ShortArray, newSize: Int): ShortArray
 }
