@@ -1,5 +1,4 @@
 #include <sys/types.h>
-#include <android/log.h>
 #include <stdio.h>
 
 static float easeInQuad(float x) {
