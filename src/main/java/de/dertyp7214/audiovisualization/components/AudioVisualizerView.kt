@@ -1,10 +1,8 @@
 package de.dertyp7214.audiovisualization.components
 
-import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
-import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
@@ -35,7 +33,6 @@ class AudioVisualizerView(context: Context, attrs: AttributeSet?, defStyle: Int)
     private val color
         get() = mutableColor.value ?: Color.WHITE
     private val paint = Paint()
-    private var bitmap: Bitmap? = null
 
     var size: Int = 64
     var visualize: Boolean = true
@@ -64,14 +61,12 @@ class AudioVisualizerView(context: Context, attrs: AttributeSet?, defStyle: Int)
     fun setBottomLeftCorner(corner: Corner) = this.mutableBottomLeftCorner.postValue(corner)
     fun setBottomRightCorner(corner: Corner) = this.mutableBottomRightCorner.postValue(corner)
 
-    @SuppressLint("DrawAllocation")
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec)
 
         viewTreeObserver.addOnGlobalLayoutListener {
             context.getActivity()?.let { activity ->
                 if (activity is FragmentActivity) {
-                    bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
                     mutableAudioData.observe(activity) {
                         invalidate()
                     }
@@ -85,7 +80,6 @@ class AudioVisualizerView(context: Context, attrs: AttributeSet?, defStyle: Int)
         }
     }
 
-    @SuppressLint("DrawAllocation")
     override fun onDraw(canvas: Canvas) {
         drawOnBitmap(audioData, canvas)
     }
